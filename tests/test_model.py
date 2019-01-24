@@ -1,4 +1,4 @@
-from aws_public_ip_addresses.model import AWSAddresses
+from aws_public_ip_addresses.model import AWSAddresses, Renderer, CiscoASA
 
 
 def test_check_download():
@@ -64,3 +64,9 @@ def test_filter_ipv4_prefixes():
 def test_filter_ipv6_prefixes():
     addresses = AWSAddresses()
     assert len(addresses.filter_ipv6_prefixes('us-east-')) > 0
+
+
+def test_class_factory():
+    addresses = AWSAddresses()
+    assert isinstance(Renderer.get_renderer(addresses, 'CiscoASA'), CiscoASA)
+

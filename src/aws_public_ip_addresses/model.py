@@ -118,4 +118,51 @@ class AWSAddresses(object):
         return results
 
 
+class Renderer(object):
+    """render the AWS addresses in various formats
 
+    If the class has public attributes, they may be documented here
+    in an ``Attributes`` section and follow the same formatting as a
+    function's ``Args`` section. Alternatively, attributes may be documented
+    inline with the attribute's declaration (see __init__ method below).
+
+    """
+    def __init__(self, aws_addresses: AWSAddresses):
+        self.addresses = aws_addresses  # type: AWSAddresses
+
+    @classmethod
+    def get_renderer(cls, aws_addresses: AWSAddresses, render_format='CiscoASA'):
+        if render_format == 'CiscoASA':
+            return CiscoASA(aws_addresses)
+        raise RuntimeError('Invalid Rendere Class: ' + render_format)
+
+    @staticmethod
+    def render_template(jinja_template: str = None, template_data=None) -> str:
+        """Given a dict, render the template and return as string
+
+        Note that PackageLoader lets me put the template in src and from the template in the package after install
+        """
+        from jinja2 import Environment, PackageLoader
+        env = Environment(loader=PackageLoader('aws_public_ip_addresses', 'templates'),
+                          trim_blocks=True, lstrip_blocks=True)
+        template = env.get_template(jinja_template)
+
+        return template.render(template_data)
+
+
+class CiscoASA(Renderer):
+    """The summary line for a class docstring should fit on one line.
+
+    If the class has public attributes, they may be documented here
+    in an ``Attributes`` section and follow the same formatting as a
+    function's ``Args`` section. Alternatively, attributes may be documented
+    inline with the attribute's declaration (see __init__ method below).
+
+    """
+
+    def __init__(self, aws_addresses: AWSAddresses):
+        super().__init__(aws_addresses)
+        from jinja2 import Environment, PackageLoader
+        self.env = Environment(loader=PackageLoader('aws_public_ip_addresses', 'templates'),
+                               trim_blocks=True, lstrip_blocks=True)
+        template = self.env.get_template('cisco_asa.jinja2')
