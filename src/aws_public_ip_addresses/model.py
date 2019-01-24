@@ -62,7 +62,7 @@ class AWSAddresses(object):
         """Return a list of the regions
 
         if ip_version is left default (None), the method will return a list of all unique reqions from both the ipv4
-        and ipv6 prefix dicts,  If ipversion=4 is specified, it will just use the ipv4 prefix dict and if ipversion=6
+        and ipv6 prefix dicts,  If ip_version=4 is specified, it will just use the ipv4 prefix dict and if ip_version=6
         is specified it'll just use the ipv6 dict
 
         """
@@ -82,6 +82,40 @@ class AWSAddresses(object):
             self._regions = region_list
 
         return self._regions
+
+    def filter_ipv4_prefixes(self, regions_starting_with: str) -> List[str]:
+        """Return filtered list of ipv4 prefixes
+
+        Require regions_starting_with  and just return the prefixes for regions that start with that string.
+        ex.  if regions_starting_with == 'us-east-'
+        we'll return the us-east-1  and us-east-2 prefixes, but not us-west-2
+
+
+        """
+        ipv4_prefixes = self.get_ipv4_prefixes()
+        results = []
+        for prefix in ipv4_prefixes:
+            if prefix['region'].startswith(regions_starting_with):
+                results.append(prefix['ip_prefix'])
+
+        return results
+
+    def filter_ipv6_prefixes(self, regions_starting_with: str) -> List[str]:
+        """Return filtered list of ipv6 prefixes
+
+        Require regions_starting_with  and just return the prefixes for regions that start with that string.
+        ex.  if regions_starting_with == 'us-east-'
+        we'll return the us-east-1  and us-east-2 prefixes, but not us-west-2
+
+
+        """
+        ipv6_prefixes = self.get_ipv6_prefixes()
+        results = []
+        for prefix in ipv6_prefixes:
+            if prefix['region'].startswith(regions_starting_with):
+                results.append(prefix['ipv6_prefix'])
+
+        return results
 
 
 

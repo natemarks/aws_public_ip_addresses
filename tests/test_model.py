@@ -54,3 +54,13 @@ def test_get_regions():
     assert all_regions == addresses.get_regions()
     assert ipv4_regions == addresses.get_regions(ip_version=4)
     assert ipv6_regions == addresses.get_regions(ip_version=6)
+
+
+def test_filter_ipv4_prefixes():
+    addresses = AWSAddresses()
+    assert len(addresses.filter_ipv4_prefixes('us-east-')) > 0
+
+
+def test_filter_ipv6_prefixes():
+    addresses = AWSAddresses()
+    assert len(addresses.filter_ipv6_prefixes('us-east-')) > 0
