@@ -159,7 +159,7 @@ class Renderer(object):
 
 
 class CiscoASA(Renderer):
-    """The summary line for a class docstring should fit on one line.
+    """Renders group objects from prefix list for Cisco ASA
 
     If the class has public attributes, they may be documented here
     in an ``Attributes`` section and follow the same formatting as a
@@ -174,11 +174,7 @@ class CiscoASA(Renderer):
         self.ipv4_object_group_name = 'AMAZON_AWS_IPV4_ADDRESSES'
         self.ipv6_object_group_name = 'AMAZON_AWS_IPV6_ADDRESSES'
 
-        from jinja2 import Environment, PackageLoader
-        self.env = Environment(loader=PackageLoader('aws_public_ip_addresses', 'templates'),
-                               trim_blocks=True, lstrip_blocks=True)
-
-        self.template = self.env.get_template('cisco_asa.jinja2')
+        template_file = 'cisco_asa.jinja2'
         template_data = {
             'ipv4_group_name': self.ipv4_object_group_name,
             'ipv6_group_name': self.ipv6_object_group_name,
@@ -186,8 +182,7 @@ class CiscoASA(Renderer):
             'ipv6_addresses': CiscoASA.get_object_dict(addresses['ipv6_addresses'])
         }
 
-        output = Renderer.render_template(jinja_template='cisco_asa.jinja2', template_data=template_data)
-        pass
+        self.output = Renderer.render_template(jinja_template=template_file, template_data=template_data)
 
     @staticmethod
     def cisco_object_data(ip_prefix: str) -> Tuple[str, str]:
