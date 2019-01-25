@@ -5,5 +5,15 @@ exit
 {% endfor %}
 
 object-group network {{ ipv4_group_name }}
+{% for s_notation, data in ipv4_addresses.items() %}
+network-object object {{ s_notation }}
+{% endfor %}
+exit
 
 
+### TO REMOVE THE OBJECTS
+{% for s_notation, data in ipv4_addresses.items() %}
+no object network {{ s_notation }}
+{% endfor %}
+
+no object-group network {{ ipv4_group_name }}
