@@ -66,7 +66,13 @@ def test_filter_ipv6_prefixes():
     assert len(addresses.filter_ipv6_prefixes('us-east-')) > 0
 
 
-def test_class_factory():
+def test_renderer_class_factory():
     addresses = AWSAddresses()
-    assert isinstance(Renderer.get_renderer(addresses, 'CiscoASA'), CiscoASA)
+    template_data = {'ipv4_addresses': addresses.filter_ipv4_prefixes('us-east-'),
+                     'ipv6_addresses': addresses.filter_ipv6_prefixes('us-east-')}
+    assert isinstance(Renderer.get_renderer(template_data, 'CiscoASA'), CiscoASA)
 
+
+def test_cisco_object_data():
+    assert '192_168_1_0_S_24', 'subnet 192.168.1.0 255.255.255.0' == \
+           CiscoASA.cisco_object_data('192.168.1.0/24')

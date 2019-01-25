@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 
 class AWSAddresses(object):
@@ -127,8 +127,16 @@ class Renderer(object):
     inline with the attribute's declaration (see __init__ method below).
 
     """
-    def __init__(self, aws_addresses: AWSAddresses):
-        self.addresses = aws_addresses  # type: AWSAddresses
+    def __init__(self, addresses: Dict[str, List[str]]):
+        """
+        
+        :type addresses: Dict[str, List[str]]
+        :param addresses: This should be dict with two keys:  one for ipv4 addresses and one for ipv6 addresses
+
+        {'ipv4_addresses': ['192.168.1.0/24', '10.0.0.0/16'],
+        'ipv6_addresses': ['....', '....']}
+        """
+        self.addresses = addresses
 
     @classmethod
     def get_renderer(cls, aws_addresses: AWSAddresses, render_format='CiscoASA'):
@@ -160,9 +168,48 @@ class CiscoASA(Renderer):
 
     """
 
-    def __init__(self, aws_addresses: AWSAddresses):
-        super().__init__(aws_addresses)
+    def __init__(self, addresses: Dict[str, List[str]]):
+        super().__init__(addresses)
+
+        self.ipv4_object_group_name = 'AMAZON_AWS_IPV4_ADDRESSES'
+        self.ipv6_object_group_name = 'AMAZON_AWS_IPV6_ADDRESSES'
+
         from jinja2 import Environment, PackageLoader
         self.env = Environment(loader=PackageLoader('aws_public_ip_addresses', 'templates'),
                                trim_blocks=True, lstrip_blocks=True)
-        template = self.env.get_template('cisco_asa.jinja2')
+
+        self.template = self.env.get_template('cisco_asa.jinja2')
+        template_data = {
+            'ipv4_group_name': self.ipv4_object_group_name,
+            'ipv6_group_name': self.ipv6_object_group_name,
+            'ipv4_addresses': CiscoASA.get_object_dict(addresses['ipv4_addresses']),
+            'ipv6_addresses': CiscoASA.get_object_dict(addresses['ipv6_addresses'])
+        }
+
+        output = Renderer.render_template(jinja_template='cisco_asa.jinja2', template_data=template_data)
+        pass
+
+    @staticmethod
+    def cisco_object_data(ip_prefix: str) -> Tuple[str, str]:
+        """Get S Notation and subnet format from slash format prefix
+        '192.168.1.0/24' -> '192_168_1_0_S_24', 'subnet 192.168.1.0 255.255.255.0'
+
+        """
+        from netaddr import IPNetwork
+        net = IPNetwork(ip_prefix)
+        obj_data = ' '.join(['subnet', str(net.network), str(net.netmask)])
+
+        for r in ((".", "_"), ("/", "_S_")):
+            s_notation = ip_prefix.replace(*r)
+
+        return s_notation, obj_data
+
+    @staticmethod
+    def get_object_dict(prefix_list: List[str]) -> Dict[str, str]:
+        result_dict = {}
+        for prefix in prefix_list:
+            k, v = CiscoASA.cisco_object_data(prefix)
+            result_dict[k] = v
+        return result_dict
+
+

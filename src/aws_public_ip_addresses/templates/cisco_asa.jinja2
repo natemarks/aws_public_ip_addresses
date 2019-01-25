@@ -1,0 +1,9 @@
+{% for s_notation, data in ipv4_addresses.items() %}
+object network {{ s_notation }}
+    {{ data }}
+exit
+{% endfor %}
+
+object-group network {{ ipv4_group_name }}
+
+
